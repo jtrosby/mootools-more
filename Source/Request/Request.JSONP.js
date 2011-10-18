@@ -105,6 +105,7 @@ Request.JSONP = new Class({
 
 	success: function(args, index){
 		if (!this.running) return;
+		this.removeCallback(index);
 		this.clear()
 			.fireEvent('complete', args).fireEvent('success', args)
 			.callChain();
@@ -124,6 +125,13 @@ Request.JSONP = new Class({
 		if (this.script){
 			this.script.destroy();
 			this.script = null;
+
+			var index = this.index;
+			if(Request.JSONP.request_map['request_'+index] != undefined) {
+			    Request.JSONP.request_map['request_'+index] = function() {
+				this.removeCallback(index);
+			    }.bind(this)
+			}
 		}
 		return this;
 	},
@@ -134,6 +142,10 @@ Request.JSONP = new Class({
 			this.fireEvent('timeout', [this.script.get('src'), this.script]).fireEvent('failure').cancel();
 		}
 		return this;
+	},
+
+	removeCallback: function(index) {
+		delete Request.JSONP.request_map['request_'+index];
 	}
 
 });
